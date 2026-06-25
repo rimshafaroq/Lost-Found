@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from datetime import datetime
 
 database = [ ]
 
@@ -35,8 +36,26 @@ class SimpleLostFoundApp:
         submit_btn = tk.Button(input_frame, text="Submit Report", bg="#2ecc71", fg="white", font=("Arial", 10, "bold"), command=self.add_item)
         submit_btn.pack(fill=tk.X, pady=15)
 
+        filter_frame = tk.LabelFrame(root, text="Search & Date Filters", font=("Arial", 11, "bold"), padx=10, pady=5)
+        filter_frame.place(x=280, y=70, width=550, height=95)
+
+        # Search Bar Entry
+        tk.Label(filter_frame, text="Search Item:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        self.entry_search = tk.Entry(filter_frame, width=14)
+        self.entry_search.grid(row=0, column=1, padx=5, pady=5)
+
+        tk.Label(filter_frame, text="Date (YYYY-MM-DD):").grid(row=0, column=2, padx=5, pady=5, sticky=tk.W)
+        self.entry_date_filter = tk.Entry(filter_frame, width=12)
+        self.entry_date_filter.grid(row=0, column=3, padx=5, pady=5)
+
+        btn_filter = tk.Button(filter_frame, text="Filter", bg="#3498db", fg="white", font=("Arial", 9, "bold"), command=self.refresh_listbox)
+        btn_filter.grid(row=0, column=4, padx=5, pady=5)
+
+        btn_reset = tk.Button(filter_frame, text="Reset", bg="#95a5a6", fg="white", font=("Arial", 9, "bold"), command=self.reset_filters)
+        btn_reset.grid(row=0, column=5, padx=5, pady=5)
+
         display_frame = tk.LabelFrame(root, text="Recent Reports", font=("Arial", 11, "bold"), padx=10, pady=10)
-        display_frame.place(x=280, y=70, width=550, height=350)
+        display_frame.place(x=280, y=180, width=550, height=310)
 
         self.item_listbox = tk.Listbox(display_frame, font=("Courier", 10), selectmode=tk.SINGLE)
         self.item_listbox.pack(fill=tk.BOTH, expand=True)
@@ -49,12 +68,13 @@ class SimpleLostFoundApp:
         location = self.entry_loc.get().strip()
         contact = self.entry_contact.get().strip()
 
+        current_date = datetime.now().strftime("%Y-%m-%d")
+
         if not item_name or not location or not contact:
             messagebox.showerror("Error", "All fields are required!")
             return
 
-        formatted_entry = f" [{item_type}]  {item_name}  |  Loc: {location}  |  Contact: {contact}"
-        
+        formatted_entry = f" [{current_date}] [{item_type}]  {item_name}  |  Loc: {location}  |  Contact: {contact}"
         database.append(formatted_entry)
 
         messagebox.showinfo("Success", f"{item_type} item reported successfully!")
@@ -64,8 +84,21 @@ class SimpleLostFoundApp:
     def refresh_listbox(self):
         self.item_listbox.delete(0, tk.END)
         
+        search_query = self.entry_search.get().strip().lower()
+        date_query = self.entry_date_filter.get().strip()
+
         for record in database:
+            if search_query and search_query not in record.lower():
+                continue
+            if date_query and f"[{date_query}]" not in record:
+                continue
+
             self.item_listbox.insert(tk.END, record)
+
+    def reset_filters(self):
+        self.entry_search.delete(0, tk.END)
+        self.entry_date_filter.delete(0, tk.END)
+        self.refresh_listbox()
 
     def clear_inputs(self):
         self.entry_item.delete(0, tk.END)
