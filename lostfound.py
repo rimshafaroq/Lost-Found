@@ -62,6 +62,20 @@ class SimpleLostFoundApp:
 
         self.refresh_listbox()
 
+    def check_for_matches(self, new_type, new_item):
+        look_for_type = "Found" if new_type == "Lost" else "Lost"
+        matches_found = []
+
+        for record in database:
+            # Check if the string contains the opposing type AND the item keyword
+            if f"[{look_for_type}]" in record and new_item.lower() in record.lower():
+                matches_found.append(f"• {record.strip()}")
+
+        if matches_found:
+            alert_message = f"🚨 POTENTIAL MATCH ALERT! 🚨\n\nYou reported a '{new_type}' item: {new_item}.\n\n"
+            alert_message += "We found these matches in the system:\n" + "\n".join(matches_found)
+            messagebox.showinfo("System Match Found", alert_message)
+
     def add_item(self):
         item_type = self.type_var.get()
         item_name = self.entry_item.get().strip()
@@ -78,6 +92,8 @@ class SimpleLostFoundApp:
         database.append(formatted_entry)
 
         messagebox.showinfo("Success", f"{item_type} item reported successfully!")
+
+        self.check_for_matches(item_type, item_name)
         self.clear_inputs()
         self.refresh_listbox()
 
